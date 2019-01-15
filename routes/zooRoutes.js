@@ -1,5 +1,6 @@
 const express = require('express');
 const router = express.Router();
+const zoos = require('../model/model');
 
 const knex = require('knex');
 const knexConfig = require('../knexfile');
@@ -56,9 +57,7 @@ router.post('/', async (req, res) => {
 
 router.delete('/:id', async (req, res) => {
   try {
-    const deleteAnimal = await db('zoos')
-      .where({ id: req.params.id })
-      .del();
+    const deleteAnimal = await zoos.remove(req.params.id);
     if (!deleteAnimal) {
       res
         .status(responseStatus.badRequest)
