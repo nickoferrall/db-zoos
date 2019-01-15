@@ -28,9 +28,13 @@ server.get('/api/zoos', (req, res) => {
 server.get('/api/zoos/:id', async (req, res) => {
   try {
     const animalId = await db('zoos').where({ id: req.params.id });
-    res.status(200).json(animalId);
+    if (animalId.length === 0) {
+      res.status(404).json({ message: 'ID not found.' });
+    } else {
+      res.status(200).json(animalId);
+    }
   } catch (error) {
-    res.status(400).json({ message: 'Zoo animal not found.' });
+    res.status(400).json({ message: 'Unable to find zoo animal.' });
   }
 });
 
@@ -40,7 +44,13 @@ server.post('/api/zoos', async (req, res) => {
     const zooAnimal = await db('zoos').where({ id: ids[0] });
     res.status(201).json(zooAnimal);
   } catch (error) {
-    res.status(500).json(error);
+    if (error.errno === 19) {
+      res.status(400).json({
+        message: 'You must include a name that does not exist in the database.'
+      });
+    } else {
+      res.status(500).json({ message: 'Error adding zoo animal.' });
+    }
   }
 });
 
@@ -49,7 +59,13 @@ server.delete('/api/zoos/:id', async (req, res) => {
     const deleteAnimal = await db('zoos')
       .where({ id: req.params.id })
       .del();
-    res.status(200).json(deleteAnimal);
+    if (!deleteAnimal) {
+      res
+        .status(400)
+        .json({ message: 'This ID does not exist in the database.' });
+    } else {
+      res.status(200).json(deleteAnimal);
+    }
   } catch (error) {
     res.status(400).json({ errorMessage: 'Unable to delete that zoo animal.' });
   }
@@ -61,7 +77,13 @@ server.put('/api/zoos/:id', async (req, res) => {
     const myUpdate = await db('zoos')
       .where({ id: req.params.id })
       .update(changes);
-    res.status(200).json(myUpdate);
+    if (!myUpdate) {
+      res
+        .status(400)
+        .json({ message: 'This ID does not exist in the database.' });
+    } else {
+      res.status(200).json(myUpdate);
+    }
   } catch (error) {
     res.status(400).json({ errorMessage: 'Unable to update that zoo animal.' });
   }
