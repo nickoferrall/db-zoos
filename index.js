@@ -17,17 +17,17 @@ server.get('/', (req, res) => {
   res.send("It's living!");
 });
 
-server.get('/api/zoos', (req, res) => {
-  db('zoos')
-    .then(zoos => {
-      res.status(200).json(zoos);
+server.get('/api/bears', (req, res) => {
+  db('bears')
+    .then(bears => {
+      res.status(200).json(bears);
     })
     .catch(err => res.status(500).json(err));
 });
 
-server.get('/api/zoos/:id', async (req, res) => {
+server.get('/api/bears/:id', async (req, res) => {
   try {
-    const animalId = await db('zoos').where({ id: req.params.id });
+    const animalId = await db('bears').where({ id: req.params.id });
     if (animalId.length === 0) {
       res.status(404).json({ message: 'ID not found.' });
     } else {
@@ -38,10 +38,10 @@ server.get('/api/zoos/:id', async (req, res) => {
   }
 });
 
-server.post('/api/zoos', async (req, res) => {
+server.post('/api/bears', async (req, res) => {
   try {
-    const ids = await db('zoos').insert(req.body);
-    const zooAnimal = await db('zoos').where({ id: ids[0] });
+    const ids = await db('bears').insert(req.body);
+    const zooAnimal = await db('bears').where({ id: ids[0] });
     res.status(201).json(zooAnimal);
   } catch (error) {
     if (error.errno === 19) {
@@ -54,9 +54,9 @@ server.post('/api/zoos', async (req, res) => {
   }
 });
 
-server.delete('/api/zoos/:id', async (req, res) => {
+server.delete('/api/bears/:id', async (req, res) => {
   try {
-    const deleteAnimal = await db('zoos')
+    const deleteAnimal = await db('bears')
       .where({ id: req.params.id })
       .del();
     if (!deleteAnimal) {
@@ -71,10 +71,10 @@ server.delete('/api/zoos/:id', async (req, res) => {
   }
 });
 
-server.put('/api/zoos/:id', async (req, res) => {
+server.put('/api/bears/:id', async (req, res) => {
   try {
     const changes = req.body;
-    const myUpdate = await db('zoos')
+    const myUpdate = await db('bears')
       .where({ id: req.params.id })
       .update(changes);
     if (!myUpdate) {
@@ -87,6 +87,30 @@ server.put('/api/zoos/:id', async (req, res) => {
   } catch (error) {
     res.status(400).json({ errorMessage: 'Unable to update that zoo animal.' });
   }
+});
+
+server.post('/api/bears', async (req, res) => {
+  try {
+    const ids = await db('bears').insert(req.body);
+    const bearResponse = await db('bears').where({ id: ids[0] });
+    res.status(201).json(bearResponse);
+  } catch (error) {
+    if (error.errno === 19) {
+      res.status(400).json({
+        message: 'You must include a name that does not exist in the database.'
+      });
+    } else {
+      res.status(500).json({ message: 'Error adding bear.' });
+    }
+  }
+});
+
+server.get('/api/bears', (req, res) => {
+  db('bears')
+    .then(bears => {
+      res.status(200).json(bears);
+    })
+    .catch(err => res.status(500).json(err));
 });
 
 const port = 3300;
