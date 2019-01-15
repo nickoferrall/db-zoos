@@ -18,28 +18,21 @@ server.get('/', (req, res) => {
 });
 
 server.get('/api/zoos', (req, res) => {
-  courses = req.body;
-  console.log(courses);
   db('zoos')
     .then(zoos => {
-      console.log('zoos = ', zoos);
       res.status(200).json(zoos);
     })
     .catch(err => res.status(500).json(err));
 });
 
-// server.get('/api/zoos', async (req, res) => {
-//   try {
-//     console.log(req.body);
-//     const contents = await db.get();
-//     res.status(200).json(contents);
-//   } catch (error) {
-//     console.log('Error: ', error);
-//     res.status(400).json({
-//       errorMesssage: 'Unable to get actions.'
-//     });
-//   }
-// });
+server.get('/api/zoos/:id', async (req, res) => {
+  try {
+    const animalId = await db('zoos').where({ id: req.params.id });
+    res.status(200).json(animalId);
+  } catch (error) {
+    res.status(400).json({ message: 'Zoo animal not found.' });
+  }
+});
 
 server.post('/api/zoos', async (req, res) => {
   try {
@@ -48,6 +41,17 @@ server.post('/api/zoos', async (req, res) => {
     res.status(201).json(zooAnimal);
   } catch (error) {
     res.status(500).json(error);
+  }
+});
+
+server.delete('/api/zoos/:id', async (req, res) => {
+  try {
+    const deleteAnimal = await db('zoos')
+      .where({ id: req.params.id })
+      .del();
+    res.status(200).json(deleteAnimal);
+  } catch (error) {
+    res.status(400).json({ errorMessage: 'Unable to delete that zoo animal.' });
   }
 });
 
