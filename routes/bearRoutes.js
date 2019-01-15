@@ -5,18 +5,28 @@ const knex = require('knex');
 const knexConfig = require('../knexfile');
 const db = knex(knexConfig.development);
 
+const responseStatus = {
+  success: 200,
+  postCreated: 201,
+  badRequest: 400,
+  notFound: 404,
+  serverError: 500
+};
+
 router.post('/', async (req, res) => {
   try {
     const ids = await db('bears').insert(req.body);
     const bearResponse = await db('bears').where({ id: ids[0] });
-    res.status(201).json(bearResponse);
+    res.status(responseStatus.postCreated).json(bearResponse);
   } catch (error) {
     if (error.errno === 19) {
-      res.status(400).json({
+      res.status(responseStatus.badRequest).json({
         message: 'You must include a name that does not exist in the database.'
       });
     } else {
-      res.status(500).json({ message: 'Error adding bear.' });
+      res
+        .status(responseStatus.serverError)
+        .json({ message: 'Error adding bear.' });
     }
   }
 });
@@ -24,21 +34,23 @@ router.post('/', async (req, res) => {
 router.get('/', (req, res) => {
   db('bears')
     .then(bears => {
-      res.status(200).json(bears);
+      res.status(responseStatus.success).json(bears);
     })
-    .catch(err => res.status(500).json(err));
+    .catch(err => res.status(responseStatus.serverError).json(err));
 });
 
 router.get('/:id', async (req, res) => {
   try {
     const animalId = await db('bears').where({ id: req.params.id });
     if (animalId.length === 0) {
-      res.status(404).json({ message: 'ID not found.' });
+      res.status(responseStatus.notFound).json({ message: 'ID not found.' });
     } else {
-      res.status(200).json(animalId);
+      res.status(responseStatus.success).json(animalId);
     }
   } catch (error) {
-    res.status(400).json({ message: 'Unable to find bear.' });
+    res
+      .status(responseStatus.badRequest)
+      .json({ message: 'Unable to find bear.' });
   }
 });
 
@@ -49,13 +61,15 @@ router.delete('/:id', async (req, res) => {
       .del();
     if (!deleteAnimal) {
       res
-        .status(400)
+        .status(responseStatus.badRequest)
         .json({ message: 'This ID does not exist in the database.' });
     } else {
-      res.status(200).json(deleteAnimal);
+      res.status(responseStatus.success).json(deleteAnimal);
     }
   } catch (error) {
-    res.status(400).json({ errorMessage: 'Unable to delete that bear.' });
+    res
+      .status(responseStatus.badRequest)
+      .json({ errorMessage: 'Unable to delete that bear.' });
   }
 });
 
@@ -67,13 +81,15 @@ router.put('/:id', async (req, res) => {
       .update(changes);
     if (!myUpdate) {
       res
-        .status(400)
+        .status(responseStatus.badRequest)
         .json({ message: 'This ID does not exist in the database.' });
     } else {
-      res.status(200).json(myUpdate);
+      res.status(responseStatus.success).json(myUpdate);
     }
   } catch (error) {
-    res.status(400).json({ errorMessage: 'Unable to update that bear.' });
+    res
+      .status(responseStatus.badRequest)
+      .json({ errorMessage: 'Unable to update that bear.' });
   }
 });
 
